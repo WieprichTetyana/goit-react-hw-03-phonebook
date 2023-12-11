@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { Component } from 'react';
+import { ContactListItem } from './ContactListItem';
 import styled from 'styled-components';
 
 const StyledList = styled.ul`
@@ -11,54 +12,16 @@ const StyledList = styled.ul`
   list-style-type: none;
 `;
 
-const StyledListItem = styled.li`
-  padding: 5px 10px;
-  background-color: white;
-
-  border: none;
-  outline: none;
-  border-bottom: 1px solid;
-  border: 1px solid #272525;
-
-  border-radius: 5px;
-  display: flex;
-  flex-direction: row;
-  max-width: 450px;
-  margin: 10px;
-
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const DeleteButton = styled.button`
-  background-color: #ff6961;
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 3px;
-  cursor: pointer;
-`;
-
-const ContactList = ({ contacts, filter, onDeleteContact }) => {
-  const filteredContacts = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(filter.toLowerCase())
-  );
-  const handleDelete = id => {
-    onDeleteContact(id);
-  };
-
-  return (
-    <StyledList>
-      {filteredContacts.map(contact => (
-        <StyledListItem key={contact.id}>
-          {contact.name}: {contact.number}
-          <DeleteButton onClick={() => handleDelete(contact.id)}>
-            Delete
-          </DeleteButton>
-        </StyledListItem>
-      ))}
-    </StyledList>
-  );
-};
-
-export default ContactList;
+export class ContactList extends Component {
+  render() {
+    const filteredContacts = this.props.getFilteredContacts();
+    return (
+      <StyledList>
+        <ContactListItem
+          filteredContacts={filteredContacts}
+          onDeleteContact={this.props.onDeleteContact}
+        />
+      </StyledList>
+    );
+  }
+}

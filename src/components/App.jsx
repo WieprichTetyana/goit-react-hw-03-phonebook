@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
-import ContactForm from './ContactForm';
-import ContactList from './ContactList';
+import { ContactForm } from './ContactForm';
+import { ContactList } from './ContactList';
 import { nanoid } from 'nanoid';
-import Filter from './Filter';
+import { Filter } from './Filter';
 import styled from 'styled-components';
 
-const LOCAL_STORAGE_KEY = 'contacts';
-
-const StyledApp = styled.div`
+const Container = styled.div`
   text-align: center;
   display: block;
   max-width: 450px;
@@ -17,6 +15,23 @@ const StyledApp = styled.div`
   background-color: #f6f2f2;
   box-shadow: 3px 4px 7px 3px lightgray;
 `;
+const StyledText = styled.p`
+  opacity: 0.6;
+  font-size: 16px;
+`;
+
+const StyledTitle = styled.h1`
+  font-style: oblique;
+  font-size: 30px;
+  text-transform: uppercase;
+  text-shadow: -4px 4px 8px rgba(21, 31, 144, 0.6);
+`;
+
+const StyledHeading = styled.h2`
+  font-style: oblique;
+  text-transform: uppercase;
+  text-shadow: -4px 4px 8px rgba(21, 31, 144, 0.6);
+`;
 
 class App extends Component {
   state = {
@@ -25,101 +40,85 @@ class App extends Component {
   };
 
   componentDidMount() {
-    const storedContacts = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    const storedContacts = localStorage.getItem('contacts');
     if (storedContacts) {
-      this.setState({ contacts: storedContacts });
-    }
-  }
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem(
-        LOCAL_STORAGE_KEY,
-        JSON.stringify(this.state.contacts)
-      );
+      this.setState({ contacts: JSON.parse(storedContacts) });
     }
   }
 
-  handleNameChange = event => {
-    this.setState({ ...this.state, name: event.target.value });
+  componentDidUpdate() {
+    localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+  }
+
+  createContact = contact => {
+    this.setState(prev => ({
+      contacts: [
+        ...prev.contacts,
+        { name: contact.name, number: contact.number, id: nanoid() },
+      ],
+    }));
   };
 
-  handleNumberChange = event => {
-    this.setState({ ...this.state, number: event.target.value });
-  };
-
-  handleAddContact = () => {
-    const { name, number, contacts } = this.state;
-    const existingContact = contacts.find(
-      contact => contact.name === name.trim()
-    );
-
-    if (existingContact) {
-      alert(`${name} is already in contacts!`);
-      this.resetFormFields();
-      return;
+  handleSubmit = event => {
+    event.preventDefault();
+    for (let item of this.state.contacts) {
+      if (item.name === this.state.name) {
+        alert(`${item.name} is already in contacts.`);
+        event.currentTarget.reset();
+        return;
+      }
     }
-    const newContact = {
-      id: nanoid(),
-      name: name.trim(),
-      number: number.trim(),
-    };
-    this.setState({
-      contacts: [...contacts, newContact],
-      name: '',
-      number: '',
-    });
+    this.createContact(this.state);
+    event.currentTarget.reset();
   };
 
-  resetFormFields = () => {
-    this.setState({
-      name: '',
-      number: '',
-    });
+  handleChange = ({ target: { name, value } }) => {
+    this.setState({ [name]: value });
   };
 
-  handleFilterChange = event => {
-    this.setState({ filter: event.target.value.toLowerCase() });
+  handleFilter = event => {
+    this.setState(prevState => ({
+      filter: event.target.value,
+    }));
   };
 
   getFilteredContacts = () => {
-    const { contacts, filter } = this.state;
-    return contacts.filter(contact =>
-      contact.name.toLowerCase().includes(filter)
+    return this.state.contacts.filter(contact =>
+      contact.name.toLowerCase().includes(this.state.filter.toLowerCase())
     );
   };
 
   handleDeleteContact = id => {
-    const updatedContacts = this.state.contacts.filter(
-      contact => contact.id !== id
-    );
-    this.setState({ contacts: updatedContacts });
+    this.setState(prevState => ({
+      contacts: prevState.contacts.filter(contact => contact.id !== id),
+    }));
   };
 
   render() {
-    const { name, number, filter } = this.state;
-    const filteredContacts = this.getFilteredContacts();
-
     return (
-      <StyledApp>
-        <h1>Phonebook</h1>
+      <Container>
+        <StyledTitle>Phonebook</StyledTitle>
+
         <ContactForm
-          name={name}
-          number={number}
-          onNameChange={this.handleNameChange}
-          onNumberChange={this.handleNumberChange}
-          onAddContact={this.handleAddContact}
+          handleSubmit={this.handleSubmit}
+          handleChange={this.handleChange}
         />
-        <h2>Contacts</h2>
-        <Filter filter={filter} onChange={this.handleFilterChange} />
-        <ContactList
-          contacts={filteredContacts}
-          filter={filter}
-          handleFilterChange={this.handleFilterChange}
-          onDeleteContact={this.handleDeleteContact}
-        />
-      </StyledApp>
+        <StyledHeading>Contacts</StyledHeading>
+        {this.state.contacts.length ? (
+          <div>
+            <Filter handleFilter={this.handleFilter} />
+            <ContactList
+              getFilteredContacts={this.getFilteredContacts}
+              onDeleteContact={this.handleDeleteContact}
+            ></ContactList>
+          </div>
+        ) : (
+          <StyledText>
+            You don't have any contacts in your phonebook yet.
+          </StyledText>
+        )}
+      </Container>
     );
   }
 }
-
 export default App;
