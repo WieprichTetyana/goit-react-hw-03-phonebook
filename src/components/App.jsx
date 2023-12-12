@@ -46,10 +46,14 @@ class App extends Component {
     }
   }
 
-  componentDidUpdate() {
+  /* componentDidUpdate() {
     localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+  } */
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.contacts !== prevState.contacts) {
+      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+    }
   }
-
   createContact = contactData => {
     const { name, number } = contactData;
     const newContact = { name, number, id: nanoid() };
