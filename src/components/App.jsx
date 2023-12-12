@@ -50,26 +50,12 @@ class App extends Component {
     localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
   }
 
-  createContact = contact => {
-    this.setState(prev => ({
-      contacts: [
-        ...prev.contacts,
-        { name: contact.name, number: contact.number, id: nanoid() },
-      ],
+  createContact = contactData => {
+    const { name, number } = contactData;
+    const newContact = { name, number, id: nanoid() };
+    this.setState(prevState => ({
+      contacts: [...prevState.contacts, newContact],
     }));
-  };
-
-  handleSubmit = event => {
-    event.preventDefault();
-    for (let item of this.state.contacts) {
-      if (item.name === this.state.name) {
-        alert(`${item.name} is already in contacts.`);
-        event.currentTarget.reset();
-        return;
-      }
-    }
-    this.createContact(this.state);
-    event.currentTarget.reset();
   };
 
   handleChange = ({ target: { name, value } }) => {
@@ -77,9 +63,7 @@ class App extends Component {
   };
 
   handleFilter = event => {
-    this.setState(prevState => ({
-      filter: event.target.value,
-    }));
+    this.setState({ filter: event.target.value });
   };
 
   getFilteredContacts = () => {
@@ -98,11 +82,7 @@ class App extends Component {
     return (
       <Container>
         <StyledTitle>Phonebook</StyledTitle>
-
-        <ContactForm
-          handleSubmit={this.handleSubmit}
-          handleChange={this.handleChange}
-        />
+        <ContactForm onSubmit={this.createContact} />
         <StyledHeading>Contacts</StyledHeading>
         {this.state.contacts.length ? (
           <div>
@@ -121,4 +101,5 @@ class App extends Component {
     );
   }
 }
+
 export default App;
